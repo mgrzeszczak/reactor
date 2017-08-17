@@ -1,6 +1,6 @@
-package github.com.mgrzeszczak.reactor.example.protocols;
+package github.com.mgrzeszczak.reactor.protocol;
 
-import github.com.mgrzeszczak.reactor.Protocol;
+import github.com.mgrzeszczak.reactor.core.Protocol;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;

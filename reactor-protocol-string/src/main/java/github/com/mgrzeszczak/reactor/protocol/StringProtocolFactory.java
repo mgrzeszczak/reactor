@@ -1,7 +1,7 @@
-package github.com.mgrzeszczak.reactor.example.protocols;
+package github.com.mgrzeszczak.reactor.protocol;
 
-import github.com.mgrzeszczak.reactor.Protocol;
-import github.com.mgrzeszczak.reactor.ProtocolFactory;
+import github.com.mgrzeszczak.reactor.core.Protocol;
+import github.com.mgrzeszczak.reactor.core.ProtocolFactory;
 
 public class StringProtocolFactory implements ProtocolFactory<String> {
 

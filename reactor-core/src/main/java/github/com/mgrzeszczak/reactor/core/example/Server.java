@@ -1,8 +1,8 @@
-package github.com.mgrzeszczak.reactor.example;
+package github.com.mgrzeszczak.reactor.core.example;
 
 
-import github.com.mgrzeszczak.reactor.Reactor;
-import github.com.mgrzeszczak.reactor.example.protocols.StringProtocolFactory;
+import github.com.mgrzeszczak.reactor.core.Reactor;
+import github.com.mgrzeszczak.reactor.core.example.protocols.StringProtocolFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

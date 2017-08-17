@@ -1,4 +1,4 @@
-package github.com.mgrzeszczak.reactor;
+package github.com.mgrzeszczak.reactor.core;
 
 public interface Connection<T> extends ConnectionData {
 

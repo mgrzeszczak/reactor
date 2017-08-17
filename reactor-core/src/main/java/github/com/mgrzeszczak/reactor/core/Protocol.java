@@ -1,4 +1,4 @@
-package github.com.mgrzeszczak.reactor;
+package github.com.mgrzeszczak.reactor.core;
 
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
