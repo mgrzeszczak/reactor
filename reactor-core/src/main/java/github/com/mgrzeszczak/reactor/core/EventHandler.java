@@ -6,8 +6,6 @@ public interface EventHandler<T> {
 
     void onMessage(Connection<T> connection, T message);
 
-    void onError(ConnectionData data, Exception error);
-
     void onClose(ConnectionData data);
 
 }

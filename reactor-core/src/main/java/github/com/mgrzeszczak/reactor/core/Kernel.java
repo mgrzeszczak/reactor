@@ -27,11 +27,11 @@ final class Kernel<T> extends Thread {
 
     private boolean running = false;
 
-    Kernel(ServerSocketChannel server, EventHandler<T> eventHandler, ProtocolFactory<T> protocolFactory, String name) throws IOException {
+    Kernel(ServerSocketChannel server, ConnectionFactory<T> connectionFactory, String name) throws IOException {
         this.channel = server;
         this.setName(name);
         this.selector = Selector.open();
-        this.connectionFactory = new ConnectionFactory<>(protocolFactory, eventHandler, selector::wakeup);
+        this.connectionFactory = connectionFactory;
         this.channelKey = channel.register(selector, SelectionKey.OP_ACCEPT);
         this.connections = new ArrayList<>();
     }
@@ -39,22 +39,24 @@ final class Kernel<T> extends Thread {
     @Override
     public void run() {
         running = true;
-        logger.info("Running kernel");
+        logger.info("Kernel started");
         try {
             doRun();
             selector.close();
         } catch (Exception e) {
-            logger.error("Kernel failed: ", e);
+            logger.error("Fatal kernel error", e);
         }
+        cleanup();
     }
 
     private void doRun() throws Exception {
         while (running) {
+            logger.info("active connections: {}", connections.size());
             int select = selector.select(TIMEOUT_MS);
             if (select != 0) {
                 handleKeys(selector.selectedKeys().iterator());
             }
-            sendMessages();
+            doSend();
         }
     }
 
@@ -62,68 +64,84 @@ final class Kernel<T> extends Thread {
     public void interrupt() {
         super.interrupt();
         running = false;
-        for (ConnectionImpl<T> connection : connections) {
-            connection.doClose();
-        }
     }
 
     private void handleKeys(Iterator<SelectionKey> iterator) {
         while (iterator.hasNext()) {
             SelectionKey next = iterator.next();
             if (next.isAcceptable()) {
-                handleAccept(next);
+                doAccept(next);
             } else if (next.isReadable()) {
-                handleRead(next);
+                doRead(next);
             }
             iterator.remove();
         }
     }
 
-    private void handleAccept(SelectionKey key) {
+    private void doAccept(SelectionKey key) {
         try {
             SocketChannel accept = channel.accept();
-            handleNewConnection(accept);
+            if (accept != null) {
+                handleNew(accept);
+            }
         } catch (IOException e) {
             logger.error(e, e);
-            throw new IllegalStateException(e);
+            cleanup();
+            throw new ReactorException(e);
         }
     }
 
-    private void handleNewConnection(SocketChannel channel) {
-        ConnectionImpl<T> connection = connectionFactory.create(channel);
+    private void cleanup() {
+        Iterator<ConnectionImpl<T>> iterator = connections.iterator();
+        while (iterator.hasNext()) {
+            ConnectionImpl<T> next = iterator.next();
+            next.doClose();
+            iterator.remove();
+        }
+        channelKey.cancel();
+    }
+
+    private void handleNew(SocketChannel channel) {
+        ConnectionImpl<T> connection = null;
+        try {
+            connection = connectionFactory.create(channel, selector::wakeup);
+        } catch (IOException e) {
+            logger.warn(e, e);
+            return;
+        }
         connections.add(connection);
         try {
             channel.configureBlocking(false);
             connection.register(selector);
         } catch (IOException e) {
-            logger.error(e, e);
-            connection.doClose();
-            connections.remove(connection);
+            logger.warn(e, e);
+            closeConnection(connection);
         }
+        connection.onOpen();
     }
 
     @SuppressWarnings("unchecked")
-    private void handleRead(SelectionKey key) {
+    private void doRead(SelectionKey key) {
         ConnectionImpl<T> connection = (ConnectionImpl<T>) key.attachment();
+        ioAction(connection, () -> connection.doRead(MAX_READ_COUNT));
+    }
+
+    private void doSend() {
+        connections.forEach(c -> ioAction(c, () -> c.doSend(MAX_WRITE_COUNT)));
+    }
+
+    private void ioAction(ConnectionImpl<T> connection, ThrowingRunnable action) {
         try {
-            connection.doRead(MAX_READ_COUNT);
-        } catch (IOException e) {
-            logger.warn(e, e);
-            connection.doClose();
-            connections.remove(connection);
+            action.run();
+        } catch (Throwable t) {
+            logger.warn(t, t);
+            closeConnection(connection);
         }
     }
 
-    private void sendMessages() {
-        for (ConnectionImpl<T> connection : connections) {
-            try {
-                connection.doSend(MAX_WRITE_COUNT);
-            } catch (IOException e) {
-                logger.warn(e, e);
-                connection.doClose();
-                connections.remove(connection);
-            }
-        }
+    private void closeConnection(ConnectionImpl<T> connection) {
+        connection.doClose();
+        connections.remove(connection);
     }
 
 }

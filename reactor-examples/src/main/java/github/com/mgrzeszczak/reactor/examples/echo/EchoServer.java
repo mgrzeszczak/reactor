@@ -19,7 +19,7 @@ public class EchoServer {
                 .address(address)
                 .eventHandler(new EchoEventHandler())
                 .protocolFactory(new StringProtocolFactory())
-                .threads(1)
+                .threads(10)
                 .build();
         reactor.run();
     }

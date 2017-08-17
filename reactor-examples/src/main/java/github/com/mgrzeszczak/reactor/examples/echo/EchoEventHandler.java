@@ -18,12 +18,7 @@ public class EchoEventHandler implements EventHandler<String> {
     @Override
     public void onMessage(Connection<String> connection, String message) {
         logger.info("New message {} from {}", message, connection);
-        connection.send(message);
-    }
-
-    @Override
-    public void onError(ConnectionData data, Exception error) {
-        logger.error("Connection {} error {}", data, error);
+        connection.send("response valid");
     }
 
     @Override

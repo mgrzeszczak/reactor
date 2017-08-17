@@ -1,13 +1,57 @@
-# stringf
-Java string interpolation with fluent api.
+# reactor
+Ultra lightweight, efficient and scalable Java TCP server with simple API.
 
-# Usage
+# How to use
 
-TODO
+Starting TCP server:
+```
+        InetSocketAddress address = new InetSocketAddress(InetAddress.getLocalHost(), PORT);
+        Reactor<String> reactor = Reactor.<String>builder()
+                .address(address)
+                .eventHandler(new EchoEventHandler())
+                .protocolFactory(new StringProtocolFactory())
+                .threads(10)
+                .backlog(100)
+                .build();
+        reactor.run();
+```
+where:
+
+* `address` - server's InetSocketAddress
+* `eventHandler` - implementation of EventHandler interface, see an example below
+* `protocolFactory` - factory of Protocol implementations, see an example in *reactor-protocol-string* module
+* `threads` - number of threads  that will handle connections, each connection is always run on the same thread, default = 8
+* `backlog` - server socket's backlog, default = 100
+* `reactor.run()` - blocks the calling thread, runs the main loop
+
+Example eventHandler:
+```
+public class EchoEventHandler implements EventHandler<String> {
+
+    private final static Logger logger = LogManager.getLogger(EchoEventHandler.class);
+
+    @Override
+    public void onOpen(Connection<String> connection) {
+        logger.info("New connection: {}", connection);
+    }
+
+    @Override
+    public void onMessage(Connection<String> connection, String message) {
+        logger.info("New message {} from {}", message, connection);
+        connection.send(message);
+    }
+
+    @Override
+    public void onClose(ConnectionData data) {
+        logger.error("Connection closed {}", data);
+    }
+
+}
+```
 
 # Download
 
-[![](https://jitpack.io/v/mgrzeszczak/stringf.svg)](https://jitpack.io/#mgrzeszczak/stringf)
+[![](https://jitpack.io/v/mgrzeszczak/reactor.svg)](https://jitpack.io/#mgrzeszczak/reactor)
 
 # License
 ```

@@ -21,13 +21,11 @@ public final class Reactor<T> {
     private final int threads;
     private final InetSocketAddress address;
     private final ServerSocketChannel channel;
-    private final ProtocolFactory<T> protocolFactory;
-    private final EventHandler<T> eventHandler;
+    private final ConnectionFactory<T> connectionFactory;
 
     private Reactor(EventHandler<T> eventHandler, ProtocolFactory<T> protocolFactory, InetSocketAddress address, int threads, int backlog) throws IOException {
         this.checkArguments(eventHandler, protocolFactory, address, threads);
-        this.eventHandler = eventHandler;
-        this.protocolFactory = protocolFactory;
+        this.connectionFactory = new ConnectionFactory<>(protocolFactory, eventHandler);
         this.address = address;
         this.backlog = backlog;
         this.threads = threads;
@@ -68,7 +66,7 @@ public final class Reactor<T> {
 
     private Kernel<T> createKernel(int nr) throws IOException {
         String name = KERNEL_NAME + nr;
-        return new Kernel<>(channel, eventHandler, protocolFactory, name);
+        return new Kernel<>(channel, connectionFactory, name);
     }
 
     public void run() throws IOException {
@@ -124,8 +122,13 @@ public final class Reactor<T> {
             return this;
         }
 
-        public Reactor<T> build() throws IOException {
-            return new Reactor<>(eventHandler, protocolFactory, address, threads, backlog);
+        public Reactor<T> build() {
+            try {
+                return new Reactor<>(eventHandler, protocolFactory, address, threads, backlog);
+            } catch (IOException e) {
+                logger.error(e, e);
+                throw new ReactorException(e);
+            }
         }
 
     }
