@@ -53,6 +53,37 @@ public class EchoEventHandler implements EventHandler<String> {
 
 [![](https://jitpack.io/v/mgrzeszczak/reactor.svg)](https://jitpack.io/#mgrzeszczak/reactor)
 
+To get a specific module use `com.github.mgrzeszczak.reactor` as group id, and module name as artifact id.
+
+For example, in order to only use reactor-core in your project:
+
+**Gradle**
+```
+repositories {
+    ...
+    maven { url 'https://jitpack.io' }
+}
+dependencies {
+    compile 'com.github.mgrzeszczak.reactor:reactor-core:latest-version'
+}
+```
+
+**Maven**
+```
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+	
+<dependency>
+    <groupId>com.github.mgrzeszczak.reactor</groupId>
+    <artifactId>reactor-core</artifactId>
+    <version>latest-version</version>
+</dependency>
+```
+
 # License
 ```
 MIT License
