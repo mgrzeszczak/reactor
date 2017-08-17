@@ -1,4 +1,5 @@
 rootProject.name = 'reactor'
 include 'reactor-core'
 include 'reactor-protocol-string'
+include 'reactor-examples'
 
