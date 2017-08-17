@@ -1,4 +1,6 @@
 # reactor
+[![Build Status](https://travis-ci.org/mgrzeszczak/reactor.png)](https://travis-ci.org/mgrzeszczak/reactor)
+
 Ultra lightweight, efficient and scalable Java TCP server with simple API.
 
 # How to use
